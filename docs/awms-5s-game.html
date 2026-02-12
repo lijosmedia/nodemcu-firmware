@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWMS 5S Quest</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(145deg, #020617, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .container {
+      width: min(980px, 92vw);
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    .card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      margin-bottom: 1rem;
+    }
+    h1 { margin: .2rem 0 .4rem; font-size: 1.5rem; }
+    h2 { margin: 0 0 .4rem; font-size: 1.2rem; }
+    p { color: var(--muted); line-height: 1.5; }
+    .row {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .stat {
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: .75rem;
+    }
+    .stat b { font-size: 1.1rem; color: var(--accent-2); }
+    .meter {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #1e293b;
+      overflow: hidden;
+      margin-top: .4rem;
+    }
+    .meter > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), #34d399);
+      transition: width .2s ease;
+    }
+    .scenario-title { color: #86efac; margin-bottom: .5rem; }
+    .options {
+      display: grid;
+      gap: .6rem;
+      margin-top: .8rem;
+    }
+    button {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: var(--text);
+      padding: .75rem .9rem;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: .16s ease;
+    }
+    button:hover { border-color: #64748b; transform: translateY(-1px); }
+    button[disabled] { opacity: .5; cursor: not-allowed; }
+    .feedback {
+      margin-top: .8rem;
+      padding: .8rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      min-height: 3.2rem;
+    }
+    .good { border-color: #166534; color: #bbf7d0; }
+    .bad { border-color: #7f1d1d; color: #fecaca; }
+    .neutral { color: #cbd5e1; }
+    .controls { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .8rem; }
+    .primary { background: #14532d; border-color: #166534; }
+    .secondary { background: #082f49; border-color: #0c4a6e; }
+    .danger { background: #3f1d1d; border-color: #7f1d1d; }
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+    .badge {
+      border: 1px solid #1e293b;
+      background: #0b1220;
+      border-radius: 999px;
+      padding: .3rem .7rem;
+      font-size: .85rem;
+      color: #cbd5e1;
+    }
+    .locked { opacity: .5; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>5S Quest: Build the Best Workplace</h1>
+      <p>Play through five AWMS/5S levels. Choose the best action in each scenario to improve score and awareness.</p>
+      <div class="row">
+        <div class="stat">Score<br /><b id="score">0</b></div>
+        <div class="stat">Level<br /><b id="level">1 / 5</b></div>
+        <div class="stat">Scenario<br /><b id="scenario">1 / 3</b></div>
+        <div class="stat">Progress
+          <div class="meter"><span id="progress"></span></div>
+        </div>
+      </div>
+      <div class="badge-list" id="badges"></div>
+    </section>
+
+    <section class="card">
+      <h2 id="s-title">Level 1: Re-Organise (Seiri)</h2>
+      <p id="s-goal"></p>
+      <div class="scenario-title" id="question"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback neutral" id="feedback">Choose an action to begin.</div>
+      <div class="controls">
+        <button class="primary" id="nextBtn" disabled>Next Scenario</button>
+        <button class="secondary" id="restartBtn">Restart Game</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>How scoring works</h2>
+      <p>
+        Correct action: +10 | Best-practice: +20 | Risky action: -15 | Level bonus: +25 for 3/3 correct.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const levels = [
+      {
+        title: "Level 1: Re-Organise (Seiri)",
+        goal: "Segregate useful vs non-useful items and remove clutter.",
+        badge: "Red Tag Champion",
+        scenarios: [
+          {
+            q: "A workbench has broken tools, old papers, and needed gauges mixed together.",
+            options: [
+              { t: "Tag broken/obsolete items and move them to Red Tag area.", p: 20, ok: true, why: "Excellent Seiri action: segregate and remove non-useful items." },
+              { t: "Keep everything to avoid accidental disposal.", p: -15, ok: false, why: "This increases clutter and hides useful items." },
+              { t: "Only clean the table without sorting.", p: 10, ok: true, why: "Cleaning helps, but sorting is the key in 1S." }
+            ]
+          },
+          {
+            q: "Your store room is full. What should be done first?",
+            options: [
+              { t: "Classify items by frequency of use, then remove non-essentials.", p: 20, ok: true, why: "Right approach: classify, then discard/relocate." },
+              { t: "Buy another rack immediately.", p: -15, ok: false, why: "Capacity is not the first problem; waste is." },
+              { t: "Shift all items to another corner.", p: -15, ok: false, why: "Moves clutter, does not solve clutter." }
+            ]
+          },
+          {
+            q: "You find duplicate manuals and expired forms.",
+            options: [
+              { t: "Archive one valid copy and remove expired duplicates.", p: 20, ok: true, why: "Prevents confusion and frees space." },
+              { t: "Leave them for audit evidence.", p: -15, ok: false, why: "Expired documents create errors." },
+              { t: "Hide them in a drawer.", p: -15, ok: false, why: "Hidden waste is still waste." }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Level 2: Neatness (Seiton)",
+        goal: "Place needed items for quick retrieval (PEEP).",
+        badge: "PEEP Master",
+        scenarios: [
+          {
+            q: "Operators lose time finding spanners every shift.",
+            options: [
+              { t: "Create labeled shadow board with fixed locations.", p: 20, ok: true, why: "Great Seiton: place for everything." },
+              { t: "Ask team to remember where they kept tools.", p: -15, ok: false, why: "Memory-based systems fail." },
+              { t: "Keep tools in one box without labels.", p: 10, ok: true, why: "Better than random, but still slow." }
+            ]
+          },
+          {
+            q: "Which storage principle is best?",
+            options: [
+              { t: "Frequently used items at point-of-use; rarely used items farther away.", p: 20, ok: true, why: "Reduces motion and retrieval time." },
+              { t: "Store by color only.", p: -15, ok: false, why: "Looks neat but may ignore use frequency." },
+              { t: "No fixed locations, whoever uses decides placement.", p: -15, ok: false, why: "Causes constant searching." }
+            ]
+          },
+          {
+            q: "Documents are often misplaced.",
+            options: [
+              { t: "Introduce indexed folders with naming standard and location map.", p: 20, ok: true, why: "Clear retrieval path is ideal." },
+              { t: "Keep all documents on one desk.", p: -15, ok: false, why: "Creates bottleneck and risk." },
+              { t: "Store files by date only.", p: 10, ok: true, why: "Partial improvement but not fully searchable." }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Level 3: Cleanliness (Seiso)",
+        goal: "Clean and inspect regularly (Macro → Individual → Micro).",
+        badge: "Zero-Dirt Detective",
+        scenarios: [
+          {
+            q: "Oil is repeatedly found under a machine.",
+            options: [
+              { t: "Clean area and inspect source to fix leak root cause.", p: 20, ok: true, why: "Seiso includes inspection, not just wiping." },
+              { t: "Mop quickly before supervisor arrives.", p: -15, ok: false, why: "Hides issue; risk remains." },
+              { t: "Ignore if production is on track.", p: -15, ok: false, why: "Safety and reliability risk." }
+            ]
+          },
+          {
+            q: "How should cleaning responsibility be assigned?",
+            options: [
+              { t: "Everyone owns their zone with daily checklist.", p: 20, ok: true, why: "Correct: cleaning is everybody's job." },
+              { t: "Only housekeeping cleans all production assets.", p: -15, ok: false, why: "Operators must inspect their equipment." },
+              { t: "Clean only before audits.", p: -15, ok: false, why: "Not sustainable." }
+            ]
+          },
+          {
+            q: "Best cleaning sequence for one shift?",
+            options: [
+              { t: "Macro area sweep → individual stations → micro points inspection.", p: 20, ok: true, why: "Matches 3-step approach." },
+              { t: "Micro first, skip macro if rushed.", p: -15, ok: false, why: "Leaves larger hazards." },
+              { t: "Only visible surfaces.", p: -15, ok: false, why: "Hidden defects remain." }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Level 4: Standardisation (Seiketsu)",
+        goal: "Create uniform procedures, checklists, and visual standards.",
+        badge: "Checklist Guardian",
+        scenarios: [
+          {
+            q: "Two teams follow different startup routines.",
+            options: [
+              { t: "Create one visual SOP and train all teams.", p: 20, ok: true, why: "Standardization removes variation." },
+              { t: "Allow each team to use its own method.", p: -15, ok: false, why: "Inconsistency drives defects." },
+              { t: "Write SOP but don't review it on floor.", p: 10, ok: true, why: "Good start; visual adoption still needed." }
+            ]
+          },
+          {
+            q: "Which is best for sustainment?",
+            options: [
+              { t: "Daily checklist with owner and completion evidence.", p: 20, ok: true, why: "Makes standards visible and trackable." },
+              { t: "Verbal reminders only.", p: -15, ok: false, why: "Not reliable." },
+              { t: "Checklist without owner names.", p: 10, ok: true, why: "Some control, but accountability is weak." }
+            ]
+          },
+          {
+            q: "How do you verify standard compliance?",
+            options: [
+              { t: "Use periodic audits with photo-based criteria.", p: 20, ok: true, why: "Objective and repeatable." },
+              { t: "Assume compliance if no complaints.", p: -15, ok: false, why: "Reactive and unreliable." },
+              { t: "Check only one area monthly.", p: -15, ok: false, why: "Too narrow for full compliance." }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Level 5: Discipline (Shitsuke)",
+        goal: "Build self-discipline so 5S becomes daily habit.",
+        badge: "5S Role Model",
+        scenarios: [
+          {
+            q: "A team follows 5S during audits, then slips back.",
+            options: [
+              { t: "Set daily 5-minute 5S routine with peer checks.", p: 20, ok: true, why: "Habit cadence is key to discipline." },
+              { t: "Increase audit pressure only.", p: -15, ok: false, why: "Short-term compliance, weak habit." },
+              { t: "Wait for management reminders.", p: -15, ok: false, why: "Ownership must be local." }
+            ]
+          },
+          {
+            q: "A new employee ignores label standards.",
+            options: [
+              { t: "Coach immediately, explain why, and demonstrate the right way.", p: 20, ok: true, why: "Discipline includes training and reinforcement." },
+              { t: "Ignore once; someone else will correct later.", p: -15, ok: false, why: "Delay normalizes poor habits." },
+              { t: "Publicly shame the employee.", p: -15, ok: false, why: "Damages culture and learning." }
+            ]
+          },
+          {
+            q: "How do you sustain 5S at work and home?",
+            options: [
+              { t: "Track simple weekly habit goals and celebrate consistency.", p: 20, ok: true, why: "Consistency + recognition sustains behavior." },
+              { t: "Do a big cleanup once every few months.", p: -15, ok: false, why: "Not a habit system." },
+              { t: "Only apply 5S to production floor.", p: -15, ok: false, why: "5S should extend across environments." }
+            ]
+          }
+        ]
+      }
+    ];
+
+    let levelIdx = 0;
+    let scenarioIdx = 0;
+    let score = 0;
+    let levelCorrect = 0;
+    const earnedBadges = new Set();
+
+    const scoreEl = document.getElementById("score");
+    const levelEl = document.getElementById("level");
+    const scenarioEl = document.getElementById("scenario");
+    const progressEl = document.getElementById("progress");
+    const titleEl = document.getElementById("s-title");
+    const goalEl = document.getElementById("s-goal");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const badgesEl = document.getElementById("badges");
+
+    function renderBadges() {
+      const all = levels.map(l => l.badge);
+      badgesEl.innerHTML = all.map(b => {
+        const locked = earnedBadges.has(b) ? "" : "locked";
+        return `<span class="badge ${locked}">${earnedBadges.has(b) ? "🏅" : "🔒"} ${b}</span>`;
+      }).join("");
+    }
+
+    function updateHeader() {
+      scoreEl.textContent = score;
+      levelEl.textContent = `${Math.min(levelIdx + 1, levels.length)} / ${levels.length}`;
+      scenarioEl.textContent = `${Math.min(scenarioIdx + 1, 3)} / 3`;
+      const totalScenarios = levels.length * 3;
+      const completed = (levelIdx * 3) + scenarioIdx;
+      progressEl.style.width = `${Math.round((completed / totalScenarios) * 100)}%`;
+      renderBadges();
+    }
+
+    function renderScenario() {
+      const level = levels[levelIdx];
+      const scenario = level.scenarios[scenarioIdx];
+      titleEl.textContent = level.title;
+      goalEl.textContent = level.goal;
+      questionEl.textContent = scenario.q;
+      feedbackEl.textContent = "Choose an action.";
+      feedbackEl.className = "feedback neutral";
+      nextBtn.disabled = true;
+
+      optionsEl.innerHTML = "";
+      scenario.options.forEach((opt) => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.t;
+        btn.addEventListener("click", () => chooseOption(opt, btn));
+        optionsEl.appendChild(btn);
+      });
+
+      updateHeader();
+    }
+
+    function chooseOption(opt, clickedButton) {
+      Array.from(optionsEl.querySelectorAll("button")).forEach(b => b.disabled = true);
+      clickedButton.style.borderColor = opt.ok ? "#22c55e" : "#ef4444";
+      score += opt.p;
+      if (opt.ok) levelCorrect += 1;
+      feedbackEl.textContent = `${opt.ok ? "✅" : "❌"} ${opt.why} (${opt.p > 0 ? "+" : ""}${opt.p} points)`;
+      feedbackEl.className = `feedback ${opt.ok ? "good" : "bad"}`;
+      nextBtn.disabled = false;
+      updateHeader();
+    }
+
+    function nextScenario() {
+      scenarioIdx += 1;
+      if (scenarioIdx >= 3) {
+        if (levelCorrect === 3) {
+          score += 25;
+          feedbackEl.textContent = "Perfect level! +25 bonus.";
+        }
+        earnedBadges.add(levels[levelIdx].badge);
+        levelIdx += 1;
+        scenarioIdx = 0;
+        levelCorrect = 0;
+      }
+
+      if (levelIdx >= levels.length) {
+        finishGame();
+        return;
+      }
+
+      renderScenario();
+    }
+
+    function finishGame() {
+      titleEl.textContent = "Game Complete 🎉";
+      goalEl.textContent = "You finished all 5S levels.";
+      questionEl.textContent = "Take one real-world action today: apply one 5S improvement in your area.";
+      optionsEl.innerHTML = "";
+      scenarioEl.textContent = "Done";
+      progressEl.style.width = "100%";
+
+      const rating = score >= 240 ? "Excellent" : score >= 170 ? "Strong" : "Good start";
+      feedbackEl.className = "feedback good";
+      feedbackEl.textContent = `Final Score: ${score}. Rating: ${rating}. Keep doing 5S daily.`;
+      nextBtn.disabled = true;
+      updateHeader();
+    }
+
+    restartBtn.addEventListener("click", () => {
+      levelIdx = 0;
+      scenarioIdx = 0;
+      score = 0;
+      levelCorrect = 0;
+      earnedBadges.clear();
+      renderScenario();
+    });
+
+    nextBtn.addEventListener("click", nextScenario);
+
+    renderScenario();
+  </script>
+</body>
+</html>
