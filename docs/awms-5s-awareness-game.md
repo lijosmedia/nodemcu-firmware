@@ -4,7 +4,7 @@
 **5S Quest: Build the Best Workplace**
 
 ## Playable prototype
-Open `docs/awms-5s-game.html` in any browser to play the interactive **2D** AWMS/5S game prototype (WASD/Arrow keys).
+Open `docs/awms-5s-game.html` in any browser to play the interactive **2D** AWMS/5S game on a workplace floor image map (`docs/img/workplace-floor.svg`) using WASD/Arrow keys.
 
 ## Purpose
 Create a short, engaging game that helps employees **understand**, **practice**, and **apply** AWMS/5S principles at work, home, and shared spaces. The game should make 5S practical, memorable, and repeatable.

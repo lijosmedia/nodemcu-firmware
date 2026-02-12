@@ -3,135 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AWMS 5S - 2D Workplace Game</title>
+  <title>AWMS 5S - Workplace Image Game</title>
   <style>
-    :root {
-      --bg: #020617;
-      --panel: #0f172a;
-      --line: #1e293b;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --ok: #22c55e;
-      --warn: #f59e0b;
-      --bad: #ef4444;
-      --accent: #38bdf8;
-    }
+    :root { --bg:#020617; --panel:#0f172a; --line:#1e293b; --text:#e2e8f0; --muted:#94a3b8; }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at 20% 10%, #0f172a 0%, #020617 60%);
-      min-height: 100vh;
-    }
-    .wrap {
-      width: min(1100px, 95vw);
-      margin: 18px auto;
-      display: grid;
-      grid-template-columns: minmax(320px, 760px) minmax(240px, 320px);
-      gap: 12px;
-    }
-    .card {
-      background: rgba(15,23,42,0.95);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-    }
-    h1 { margin: 0 0 8px; font-size: 1.2rem; }
-    h2 { margin: 0 0 8px; font-size: 1rem; color: #cbd5e1; }
-    p { margin: 0 0 10px; color: var(--muted); }
-    .hud {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .pill {
-      border: 1px solid #243044;
-      border-radius: 10px;
-      padding: 8px;
-      font-size: .92rem;
-      background: #0b1220;
-    }
-    .pill b { color: var(--accent); }
-    canvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      background: #111827;
-      image-rendering: pixelated;
-    }
-    .bar {
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: #1e293b;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .bar span { display:block; height:100%; width:0%; background: linear-gradient(90deg, #22c55e, #86efac); }
-    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    button {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: var(--text);
-      border-radius: 9px;
-      padding: 8px 10px;
-      cursor: pointer;
-    }
-    button:hover { border-color: #64748b; }
-    .primary { background: #14532d; border-color: #166534; }
-    .secondary { background: #082f49; border-color: #0c4a6e; }
-    .legend { display:grid; gap: 6px; font-size: .92rem; color: #cbd5e1; }
-    .dot { display:inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-    .feed {
-      margin-top: 8px;
-      min-height: 56px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: #0b1220;
-      padding: 8px;
-      color: #cbd5e1;
-      line-height: 1.3;
-    }
-    .small { font-size: .86rem; color: var(--muted); }
-    @media (max-width: 980px) {
-      .wrap { grid-template-columns: 1fr; }
-    }
+    body { margin:0; font-family: Inter,system-ui,sans-serif; color:var(--text); background: radial-gradient(circle at top,#0f172a,#020617); }
+    .wrap { width:min(1150px,95vw); margin:14px auto; display:grid; grid-template-columns:minmax(360px,780px) 320px; gap:12px; }
+    .card { background: rgba(15,23,42,.96); border:1px solid var(--line); border-radius:12px; padding:12px; }
+    h1 { margin:0 0 8px; font-size:1.18rem; }
+    p { margin:0 0 8px; color:var(--muted); }
+    .hud { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:8px; }
+    .pill { background:#0b1220; border:1px solid #243044; border-radius:8px; padding:7px; font-size:.92rem; }
+    .pill b { color:#38bdf8; }
+    canvas { width:100%; display:block; border:1px solid #334155; border-radius:10px; }
+    .bar { height:10px; background:#1e293b; border-radius:999px; overflow:hidden; margin-top:8px; }
+    .bar > span { display:block; height:100%; width:0%; background:linear-gradient(90deg,#22c55e,#86efac); }
+    .controls { margin-top:10px; display:flex; gap:8px; }
+    button { border:1px solid #334155; color:var(--text); background:#0b1220; border-radius:9px; padding:8px 10px; cursor:pointer; }
+    button:hover { border-color:#64748b; }
+    .primary { background:#14532d; border-color:#166534; }
+    .feed { min-height:64px; border:1px solid #334155; border-radius:8px; background:#0b1220; padding:8px; line-height:1.3; margin-top:8px; }
+    .legend { font-size:.9rem; color:#cbd5e1; display:grid; gap:6px; }
+    .dot { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+    .small { font-size:.85rem; color:var(--muted); }
+    @media (max-width:980px){ .wrap{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
-      <h1>5S Quest - 2D Workplace Game</h1>
-      <p>Move worker with <b>Arrow keys / WASD</b>. Complete each 5S objective in a 2D map.</p>
+      <h1>AWMS 5S: Workplace Floor Challenge (2D)</h1>
+      <p>Play on a workplace floor image. Move with <b>WASD / Arrow keys</b> and complete 5S actions in each area.</p>
       <div class="hud">
-        <div class="pill">Level: <b id="level">1 / 5</b><div class="small" id="levelName">Re-Organise (Seiri)</div></div>
-        <div class="pill">Score: <b id="score">0</b><div class="small" id="objective">Collect red-tag waste</div></div>
+        <div class="pill">Level <b id="level">1 / 5</b><div class="small" id="levelName">Seiri</div></div>
+        <div class="pill">Score <b id="score">0</b><div class="small" id="objective">Collect red-tag clutter</div></div>
+        <div class="pill">Timer <b id="timer">--</b><div class="small">Only in Level 5</div></div>
       </div>
-      <canvas id="game" width="720" height="480" aria-label="2D 5S game canvas"></canvas>
+      <canvas id="game" width="900" height="540" aria-label="Workplace 2D game"></canvas>
       <div class="bar"><span id="progress"></span></div>
       <div class="controls">
         <button class="primary" id="startBtn">Start / Resume</button>
-        <button class="secondary" id="restartBtn">Restart Game</button>
+        <button id="restartBtn">Restart</button>
       </div>
     </section>
 
     <aside class="card">
-      <h2>Legend & Rules</h2>
+      <h2 style="margin:0 0 8px">Game Legend</h2>
       <div class="legend">
-        <div><span class="dot" style="background:#60a5fa"></span>You (worker)</div>
-        <div><span class="dot" style="background:#ef4444"></span>Waste / wrong items (1S)</div>
-        <div><span class="dot" style="background:#22c55e"></span>Correct place markers (2S)</div>
-        <div><span class="dot" style="background:#f59e0b"></span>Dirt / defects (3S)</div>
-        <div><span class="dot" style="background:#a78bfa"></span>Checklist points (4S)</div>
-        <div><span class="dot" style="background:#34d399"></span>Habit tokens (5S)</div>
+        <div><span class="dot" style="background:#60a5fa"></span>Worker</div>
+        <div><span class="dot" style="background:#ef4444"></span>Red-tag clutter (1S)</div>
+        <div><span class="dot" style="background:#22c55e"></span>Place marker/tool station (2S)</div>
+        <div><span class="dot" style="background:#f59e0b"></span>Dirt or abnormality (3S)</div>
+        <div><span class="dot" style="background:#a78bfa"></span>SOP/Checklist checkpoint (4S)</div>
+        <div><span class="dot" style="background:#34d399"></span>Habit token (5S)</div>
       </div>
-      <div class="feed" id="feed">Press Start to begin Level 1.</div>
-      <p class="small" style="margin-top:8px;">Avoid black obstacles. Touch targets to complete objectives.</p>
-      <h2 style="margin-top:10px;">Badges</h2>
+      <div id="feed" class="feed">Press Start. Background uses a workplace floor image map.</div>
+      <p class="small" style="margin-top:8px">Tip: Level 1 requires carrying red-tag items to the green bin.</p>
+      <h2 style="margin:10px 0 6px">Badges</h2>
       <div id="badges" class="small">🔒 Red Tag Champion · 🔒 PEEP Master · 🔒 Zero-Dirt Detective · 🔒 Checklist Guardian · 🔒 5S Role Model</div>
     </aside>
   </main>
@@ -142,282 +70,181 @@
     const levelEl = document.getElementById('level');
     const levelNameEl = document.getElementById('levelName');
     const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
     const objectiveEl = document.getElementById('objective');
     const feedEl = document.getElementById('feed');
     const progressEl = document.getElementById('progress');
     const badgesEl = document.getElementById('badges');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
 
     const keys = new Set();
-    let running = false;
-    let score = 0;
-    let levelIndex = 0;
-    let collected = 0;
-
-    const badges = [
-      'Red Tag Champion',
-      'PEEP Master',
-      'Zero-Dirt Detective',
-      'Checklist Guardian',
-      '5S Role Model'
-    ];
+    let running = false, score = 0, levelIndex = 0, collected = 0;
     const earned = new Set();
 
-    const levels = [
-      { name: 'Re-Organise (Seiri)', objective: 'Collect all red-tag waste and drop in bin', targetColor: '#ef4444', targetCount: 6, points: 20 },
-      { name: 'Neatness (Seiton)', objective: 'Move each tool to green place marker', targetColor: '#22c55e', targetCount: 6, points: 20 },
-      { name: 'Cleanliness (Seiso)', objective: 'Clean all orange dirt/defect spots', targetColor: '#f59e0b', targetCount: 7, points: 20 },
-      { name: 'Standardisation (Seiketsu)', objective: 'Visit all purple checklist stations', targetColor: '#a78bfa', targetCount: 6, points: 20 },
-      { name: 'Discipline (Shitsuke)', objective: 'Collect daily habit tokens before timer ends', targetColor: '#34d399', targetCount: 8, points: 20, timed: true }
+    const levelConfig = [
+      { name:'Re-Organise (Seiri)', objective:'Collect red-tag clutter and drop in bin', color:'#ef4444', count:7, points:20, zone:'storage' },
+      { name:'Neatness (Seiton)', objective:'Place tools at green markers', color:'#22c55e', count:6, points:20, zone:'tool' },
+      { name:'Cleanliness (Seiso)', objective:'Clean all dirt/defect spots', color:'#f59e0b', count:7, points:20, zone:'clean' },
+      { name:'Standardisation (Seiketsu)', objective:'Visit SOP checklist checkpoints', color:'#a78bfa', count:6, points:20, zone:'sop' },
+      { name:'Discipline (Shitsuke)', objective:'Collect daily habit tokens before time ends', color:'#34d399', count:8, points:20, zone:'habit', timed:true }
     ];
+    const badgeNames = ['Red Tag Champion','PEEP Master','Zero-Dirt Detective','Checklist Guardian','5S Role Model'];
 
     const state = {
-      player: { x: 48, y: 48, w: 18, h: 18, speed: 2.2 },
-      obstacles: [],
-      targets: [],
-      bin: { x: 650, y: 410, w: 42, h: 42 },
-      carrying: 0,
-      timer: 60,
-      lastTick: 0
+      player:{x:45,y:45,w:20,h:20,speed:2.4},
+      targets:[], carrying:0, timer:55, lastTick:0,
+      bin:{x:790,y:455,w:70,h:60}
     };
 
-    function resetPlayer() {
-      state.player.x = 48;
-      state.player.y = 48;
-      state.carrying = 0;
-    }
+    const workplaceImage = new Image();
+    workplaceImage.src = 'img/workplace-floor.svg';
 
-    function randomTargets(count) {
-      const out = [];
-      let guard = 0;
-      while (out.length < count && guard < 1500) {
+    const zones = {
+      storage:{x:20,y:120,w:280,h:220},
+      tool:{x:40,y:350,w:250,h:170},
+      clean:{x:250,y:350,w:260,h:170},
+      sop:{x:500,y:350,w:250,h:170},
+      habit:{x:730,y:350,w:155,h:170}
+    };
+
+    function intersects(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+    function msg(t){ feedEl.textContent = t; }
+
+    function updateBadges(){ badgesEl.textContent = badgeNames.map(b=>earned.has(b)?`🏅 ${b}`:`🔒 ${b}`).join(' · '); }
+    function updateProgress(){ const c=levelConfig[levelIndex]; progressEl.style.width = `${Math.round((collected/c.count)*100)}%`; }
+
+    function spawnTargets(count, zone) {
+      const arr=[]; let guard=0;
+      while(arr.length<count && guard<2000){
         guard++;
-        const t = {
-          x: 40 + Math.random() * 620,
-          y: 40 + Math.random() * 380,
-          w: 14,
-          h: 14,
-          done: false
-        };
-        const collidesObs = state.obstacles.some(o => intersects(t, o));
-        const nearStart = intersects(t, { x: 20, y: 20, w: 60, h: 60 });
-        if (!collidesObs && !nearStart) out.push(t);
+        const z=zones[zone];
+        const t={x:z.x+20+Math.random()*(z.w-40), y:z.y+20+Math.random()*(z.h-40), w:14, h:14, done:false};
+        if(!arr.some(a=>intersects({...a,w:20,h:20}, t))) arr.push(t);
       }
-      return out;
+      return arr;
     }
 
-    function setupLevel() {
-      const lvl = levels[levelIndex];
-      state.obstacles = [
-        { x: 170, y: 80, w: 360, h: 18 },
-        { x: 140, y: 190, w: 18, h: 210 },
-        { x: 290, y: 140, w: 18, h: 260 },
-        { x: 430, y: 60, w: 18, h: 250 },
-        { x: 520, y: 220, w: 150, h: 18 }
-      ];
-      state.targets = randomTargets(lvl.targetCount);
-      collected = 0;
-      resetPlayer();
-      state.timer = 60;
-      levelEl.textContent = `${levelIndex + 1} / ${levels.length}`;
-      levelNameEl.textContent = lvl.name;
-      objectiveEl.textContent = lvl.objective;
-      feed(`Level ${levelIndex + 1}: ${lvl.objective}`);
-      updateProgress();
-      updateBadges();
+    function setupLevel(){
+      const lv=levelConfig[levelIndex];
+      collected=0; state.carrying=0; state.timer=55;
+      state.player.x=45; state.player.y=45;
+      state.targets=spawnTargets(lv.count, lv.zone);
+      levelEl.textContent = `${levelIndex+1} / ${levelConfig.length}`;
+      levelNameEl.textContent = lv.name;
+      objectiveEl.textContent = lv.objective;
+      timerEl.textContent = lv.timed ? `${state.timer.toFixed(0)}s` : '--';
+      msg(`Level ${levelIndex+1}: ${lv.objective}`);
+      updateProgress(); updateBadges();
     }
 
-    function feed(msg) { feedEl.textContent = msg; }
-
-    function updateBadges() {
-      badgesEl.textContent = badges.map(b => earned.has(b) ? `🏅 ${b}` : `🔒 ${b}`).join(' · ');
+    function move(dx,dy){
+      const p=state.player;
+      const n={x:p.x+dx,y:p.y+dy,w:p.w,h:p.h};
+      if(n.x<0||n.y<0||n.x+n.w>canvas.width||n.y+n.h>canvas.height) return;
+      p.x=n.x; p.y=n.y;
     }
 
-    function updateProgress() {
-      const lvl = levels[levelIndex];
-      const pct = Math.round((collected / lvl.targetCount) * 100);
-      progressEl.style.width = `${pct}%`;
+    function handleInput(){
+      let dx=0,dy=0;
+      if(keys.has('ArrowUp')||keys.has('w')) dy-=state.player.speed;
+      if(keys.has('ArrowDown')||keys.has('s')) dy+=state.player.speed;
+      if(keys.has('ArrowLeft')||keys.has('a')) dx-=state.player.speed;
+      if(keys.has('ArrowRight')||keys.has('d')) dx+=state.player.speed;
+      if(dx&&dy){dx*=0.707;dy*=0.707;}
+      move(dx,dy);
     }
 
-    function intersects(a, b) {
-      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-    }
-
-    function attemptMove(dx, dy) {
-      const p = state.player;
-      const next = { x: p.x + dx, y: p.y + dy, w: p.w, h: p.h };
-      if (next.x < 0 || next.y < 0 || next.x + next.w > canvas.width || next.y + next.h > canvas.height) return;
-      if (state.obstacles.some(o => intersects(next, o))) return;
-      p.x = next.x;
-      p.y = next.y;
-    }
-
-    function handleInput() {
-      let dx = 0, dy = 0;
-      if (keys.has('ArrowUp') || keys.has('w')) dy -= state.player.speed;
-      if (keys.has('ArrowDown') || keys.has('s')) dy += state.player.speed;
-      if (keys.has('ArrowLeft') || keys.has('a')) dx -= state.player.speed;
-      if (keys.has('ArrowRight') || keys.has('d')) dx += state.player.speed;
-      if (dx && dy) { dx *= 0.707; dy *= 0.707; }
-      attemptMove(dx, dy);
-    }
-
-    function processTargets(dt) {
-      const lvl = levels[levelIndex];
-      const p = state.player;
-
-      for (const t of state.targets) {
-        if (!t.done && intersects(p, t)) {
-          if (levelIndex === 0) {
-            t.done = true;
+    function process(dt){
+      const lv=levelConfig[levelIndex], p=state.player;
+      for(const t of state.targets){
+        if(!t.done && intersects(p,t)){
+          t.done=true;
+          if(levelIndex===0){
             state.carrying += 1;
-            feed(`Picked waste item (${state.carrying}). Drop into bin.`);
+            msg(`Picked clutter (${state.carrying}). Drop at green bin.`);
           } else {
-            t.done = true;
-            collected += 1;
-            score += lvl.points;
-            feed(`Good 5S action! +${lvl.points} points.`);
+            collected += 1; score += lv.points;
+            msg(`+${lv.points} points. ${lv.name} action completed.`);
             updateProgress();
           }
         }
       }
-
-      if (levelIndex === 0 && state.carrying > 0 && intersects(p, state.bin)) {
+      if(levelIndex===0 && state.carrying>0 && intersects(p,state.bin)){
         collected += state.carrying;
-        score += state.carrying * lvl.points;
-        feed(`Disposed ${state.carrying} red-tag items. +${state.carrying * lvl.points} points.`);
-        state.carrying = 0;
-        updateProgress();
+        score += state.carrying*lv.points;
+        msg(`Disposed ${state.carrying} red-tag items. +${state.carrying*lv.points}`);
+        state.carrying=0; updateProgress();
       }
-
-      if (lvl.timed) {
+      if(lv.timed){
         state.timer -= dt;
-        if (state.timer <= 0) {
-          state.timer = 0;
-          running = false;
-          feed('⏱ Time up! Press Start to try this level again.');
-        }
+        if(state.timer<=0){state.timer=0; running=false; msg('⏱ Time up. Press Start to retry this level.');}
+        timerEl.textContent = `${state.timer.toFixed(1)}s`;
       }
-
-      if (collected >= lvl.targetCount) {
-        levelComplete();
-      }
+      if(collected>=lv.count) completeLevel();
     }
 
-    function levelComplete() {
-      const lvl = levels[levelIndex];
-      running = false;
-      earned.add(badges[levelIndex]);
-      score += 25;
-      feed(`✅ ${lvl.name} complete! Level bonus +25.`);
-      scoreEl.textContent = score;
-      updateBadges();
-      levelIndex += 1;
-      if (levelIndex >= levels.length) {
-        feed(`🏁 Game complete! Final score: ${score}. Apply one 5S action in real life today.`);
-        objectiveEl.textContent = 'All levels cleared';
-        levelNameEl.textContent = '5S Champion';
-        progressEl.style.width = '100%';
-      } else {
-        setTimeout(() => {
-          setupLevel();
-          running = true;
-          state.lastTick = performance.now();
-          requestAnimationFrame(loop);
-        }, 700);
+    function completeLevel(){
+      const lv=levelConfig[levelIndex];
+      running=false; earned.add(badgeNames[levelIndex]); score += 25;
+      msg(`✅ ${lv.name} complete. Bonus +25.`);
+      levelIndex += 1; scoreEl.textContent = score; updateBadges();
+      if(levelIndex>=levelConfig.length){
+        levelNameEl.textContent='5S Champion'; objectiveEl.textContent='All workplace missions complete'; timerEl.textContent='Done'; progressEl.style.width='100%';
+        msg(`🏁 Final score ${score}. 5S habit achieved on workplace map.`);
+        return;
       }
+      setTimeout(()=>{ setupLevel(); running=true; state.lastTick=performance.now(); requestAnimationFrame(loop); }, 700);
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(workplaceImage.complete){ ctx.drawImage(workplaceImage,0,0,canvas.width,canvas.height); }
+      else { ctx.fillStyle='#111827'; ctx.fillRect(0,0,canvas.width,canvas.height); }
 
-      ctx.fillStyle = '#1f2937';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle='rgba(0,0,0,.26)';
+      ctx.fillRect(0,0,canvas.width,38);
+      ctx.fillStyle='#f8fafc'; ctx.font='14px sans-serif';
+      ctx.fillText('Workplace Image Map', 12, 24);
 
-      ctx.strokeStyle = '#334155';
-      for (let x = 0; x <= canvas.width; x += 24) {
-        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
-      }
-      for (let y = 0; y <= canvas.height; y += 24) {
-        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
-      }
-
-      ctx.fillStyle = '#0b0f19';
-      state.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
-
-      const lvl = levels[Math.min(levelIndex, levels.length - 1)];
-      if (levelIndex === 0) {
-        ctx.fillStyle = '#065f46';
-        ctx.fillRect(state.bin.x, state.bin.y, state.bin.w, state.bin.h);
-        ctx.fillStyle = '#d1fae5';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('BIN', state.bin.x + 8, state.bin.y + 24);
+      if(levelIndex===0){
+        ctx.fillStyle='#166534'; ctx.fillRect(state.bin.x,state.bin.y,state.bin.w,state.bin.h);
+        ctx.fillStyle='#d1fae5'; ctx.font='12px sans-serif'; ctx.fillText('BIN', state.bin.x+20, state.bin.y+34);
       }
 
-      ctx.fillStyle = lvl.targetColor;
-      for (const t of state.targets) {
-        if (!t.done) ctx.fillRect(t.x, t.y, t.w, t.h);
-      }
+      const lv = levelConfig[Math.min(levelIndex, levelConfig.length-1)];
+      ctx.fillStyle = lv.color;
+      for(const t of state.targets){ if(!t.done) ctx.fillRect(t.x,t.y,t.w,t.h); }
 
-      ctx.fillStyle = '#60a5fa';
-      ctx.fillRect(state.player.x, state.player.y, state.player.w, state.player.h);
-
-      ctx.fillStyle = '#e5e7eb';
-      ctx.font = '14px sans-serif';
-      ctx.fillText(`Carry: ${state.carrying}`, 10, 20);
-      if (lvl.timed) {
-        ctx.fillStyle = state.timer < 15 ? '#ef4444' : '#f8fafc';
-        ctx.fillText(`Time: ${state.timer.toFixed(1)}s`, 620, 20);
-      }
+      ctx.fillStyle='#60a5fa';
+      ctx.fillRect(state.player.x,state.player.y,state.player.w,state.player.h);
+      ctx.fillStyle='#ffffff'; ctx.font='13px sans-serif';
+      ctx.fillText(`Carry: ${state.carrying}`, 760, 24);
     }
 
-    function loop(ts) {
-      if (!running) return;
-      const dt = Math.min((ts - state.lastTick) / 1000, 0.033);
-      state.lastTick = ts;
-
-      handleInput();
-      processTargets(dt);
-      scoreEl.textContent = score;
-      draw();
-
-      if (running) requestAnimationFrame(loop);
+    function loop(ts){
+      if(!running) return;
+      const dt=Math.min((ts-state.lastTick)/1000,0.033); state.lastTick=ts;
+      handleInput(); process(dt); draw(); scoreEl.textContent=score;
+      if(running) requestAnimationFrame(loop);
     }
 
-    window.addEventListener('keydown', (e) => {
-      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","w","a","s","d"].includes(k)) e.preventDefault();
+    window.addEventListener('keydown',e=>{
+      const k=e.key.length===1?e.key.toLowerCase():e.key;
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(k)) e.preventDefault();
       keys.add(k);
     });
-    window.addEventListener('keyup', (e) => {
-      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      keys.delete(k);
+    window.addEventListener('keyup',e=>{ const k=e.key.length===1?e.key.toLowerCase():e.key; keys.delete(k); });
+
+    document.getElementById('startBtn').addEventListener('click',()=>{
+      if(levelIndex>=levelConfig.length) return;
+      if(!running){ running=true; state.lastTick=performance.now(); requestAnimationFrame(loop); }
     });
 
-    startBtn.addEventListener('click', () => {
-      if (levelIndex >= levels.length) return;
-      if (!running) {
-        running = true;
-        state.lastTick = performance.now();
-        requestAnimationFrame(loop);
-      }
+    document.getElementById('restartBtn').addEventListener('click',()=>{
+      running=false; score=0; levelIndex=0; collected=0; earned.clear(); setupLevel(); draw(); msg('Restarted. Press Start.'); scoreEl.textContent='0';
     });
 
-    restartBtn.addEventListener('click', () => {
-      running = false;
-      score = 0;
-      levelIndex = 0;
-      collected = 0;
-      earned.clear();
-      setupLevel();
-      draw();
-      feed('Game restarted. Press Start to play.');
-      scoreEl.textContent = score;
-    });
-
-    setupLevel();
-    draw();
+    workplaceImage.onload = () => draw();
+    setupLevel(); draw();
   </script>
 </body>
 </html>
