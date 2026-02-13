@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWMS 5S - Find & Fix Game</title>
+  <style>
+    :root { --bg:#020617; --panel:#0f172a; --line:#1e293b; --text:#e2e8f0; --muted:#94a3b8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter,system-ui,sans-serif; color:var(--text); background: radial-gradient(circle at top,#0f172a,#020617); }
+    .wrap { width:min(1180px,95vw); margin:16px auto; display:grid; grid-template-columns:minmax(360px,800px) 340px; gap:12px; }
+    .card { background:rgba(15,23,42,.96); border:1px solid var(--line); border-radius:12px; padding:12px; }
+    h1 { margin:0 0 6px; font-size:1.2rem; }
+    p { margin:0 0 8px; color:var(--muted); }
+    .hud { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:8px; }
+    .pill { background:#0b1220; border:1px solid #243044; border-radius:8px; padding:7px; font-size:.9rem; }
+    .pill b { color:#38bdf8; }
+    canvas { width:100%; display:block; border:1px solid #334155; border-radius:10px; }
+    .tools { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .tool-btn { border:1px solid #334155; background:#0b1220; color:var(--text); border-radius:8px; padding:6px 8px; cursor:pointer; }
+    .tool-btn.active { border-color:#22c55e; background:#14532d; }
+    .bar { height:10px; background:#1e293b; border-radius:999px; overflow:hidden; margin-top:8px; }
+    .bar > span { display:block; height:100%; width:0%; background:linear-gradient(90deg,#22c55e,#86efac); }
+    .controls { display:flex; gap:8px; margin-top:10px; }
+    button { border:1px solid #334155; color:var(--text); background:#0b1220; border-radius:9px; padding:8px 10px; cursor:pointer; }
+    .primary { background:#14532d; border-color:#166534; }
+    .feed { min-height:82px; border:1px solid #334155; border-radius:8px; background:#0b1220; padding:8px; line-height:1.35; margin-top:8px; }
+    .small { font-size:.86rem; color:var(--muted); }
+    @media (max-width:980px){ .wrap { grid-template-columns:1fr; } .hud { grid-template-columns:repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>AWMS 5S - Find & Fix (Different Game Type)</h1>
+      <p>Click hidden issues on the workplace image and use the correct action tool to fix them.</p>
+      <div class="hud">
+        <div class="pill">Level <b id="level">1 / 5</b></div>
+        <div class="pill">Score <b id="score">0</b></div>
+        <div class="pill">Time <b id="timer">60s</b></div>
+        <div class="pill">Fixed <b id="fixed">0 / 5</b></div>
+      </div>
+      <canvas id="game" width="920" height="540" aria-label="Find and fix game canvas"></canvas>
+      <div class="tools" id="tools"></div>
+      <div class="bar"><span id="progress"></span></div>
+      <div class="controls">
+        <button class="primary" id="startBtn">Start / Next</button>
+        <button id="restartBtn">Restart</button>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2 style="margin:0 0 8px; font-size:1rem;">How to play</h2>
+      <p class="small">1) Select a tool. 2) Click issue markers on the workplace image. 3) Fix all issues before time ends.</p>
+      <div id="objective" class="small" style="margin-bottom:6px; color:#cbd5e1;"></div>
+      <div id="feed" class="feed">Press Start to begin Level 1.</div>
+      <h2 style="margin:10px 0 6px; font-size:1rem;">Badges</h2>
+      <div id="badges" class="small">🔒 Red Tag Champion · 🔒 PEEP Master · 🔒 Zero-Dirt Detective · 🔒 Checklist Guardian · 🔒 5S Role Model</div>
+    </aside>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const levelEl = document.getElementById('level');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const fixedEl = document.getElementById('fixed');
+    const progressEl = document.getElementById('progress');
+    const toolsEl = document.getElementById('tools');
+    const feedEl = document.getElementById('feed');
+    const badgesEl = document.getElementById('badges');
+    const objectiveEl = document.getElementById('objective');
+
+    const workplace = new Image();
+    workplace.src = 'img/workplace-floor.svg';
+
+    const levels = [
+      { s:'1S Re-Organise', objective:'Use Red Tag tool to remove unnecessary clutter.', tool:'Red Tag', color:'#ef4444', badge:'Red Tag Champion', time:55,
+        issues:[ [120,220,'Broken box'], [240,290,'Expired forms'], [300,180,'Unused parts'], [180,420,'Damaged tool'], [275,460,'Duplicate file'] ] },
+      { s:'2S Neatness', objective:'Use Arrange tool to place items in marked locations.', tool:'Arrange', color:'#22c55e', badge:'PEEP Master', time:55,
+        issues:[ [110,470,'Tool misplaced'], [210,500,'No label'], [390,470,'File stack random'], [540,190,'Unsorted bench item'], [765,260,'Item blocks path'] ] },
+      { s:'3S Cleanliness', objective:'Use Clean tool on dirt/leak/defect points.', tool:'Clean', color:'#f59e0b', badge:'Zero-Dirt Detective', time:50,
+        issues:[ [430,310,'Oil leak'], [500,290,'Dust build-up'], [335,500,'Floor spill'], [780,220,'Rust spot'], [860,330,'Loose waste'] ] },
+      { s:'4S Standardisation', objective:'Use Checklist tool to standardize missed checkpoints.', tool:'Checklist', color:'#a78bfa', badge:'Checklist Guardian', time:50,
+        issues:[ [660,470,'SOP board missing step'], [700,510,'No shift sign-off'], [585,430,'Checklist gap'], [840,480,'No visual code'], [760,430,'Audit criteria missing'] ] },
+      { s:'5S Discipline', objective:'Use Coach tool to close daily habit lapses quickly.', tool:'Coach', color:'#34d399', badge:'5S Role Model', time:45,
+        issues:[ [980-200,430,'Missed daily 5S'], [980-150,490,'No self-audit'], [860,520,'Skipped training'], [920,390,'No follow-through'], [1020-160,350,'Habit break'] ] }
+    ];
+
+    const allTools = ['Red Tag','Arrange','Clean','Checklist','Coach'];
+    let selectedTool = allTools[0];
+    let levelIndex = 0;
+    let score = 0;
+    let running = false;
+    let timeLeft = 0;
+    let fixed = 0;
+    let issues = [];
+    const earned = new Set();
+    let lastTick = 0;
+
+    function msg(t){ feedEl.textContent = t; }
+
+    function renderTools(){
+      toolsEl.innerHTML = '';
+      for(const t of allTools){
+        const b = document.createElement('button');
+        b.textContent = t;
+        b.className = 'tool-btn' + (selectedTool===t?' active':'');
+        b.onclick = () => { selectedTool = t; renderTools(); };
+        toolsEl.appendChild(b);
+      }
+    }
+
+    function updateBadges(){
+      const names = ['Red Tag Champion','PEEP Master','Zero-Dirt Detective','Checklist Guardian','5S Role Model'];
+      badgesEl.textContent = names.map(n => earned.has(n) ? `🏅 ${n}` : `🔒 ${n}`).join(' · ');
+    }
+
+    function loadLevel(){
+      const lv = levels[levelIndex];
+      levelEl.textContent = `${levelIndex+1} / ${levels.length}`;
+      objectiveEl.textContent = `${lv.s}: ${lv.objective}`;
+      timeLeft = lv.time;
+      timerEl.textContent = `${timeLeft.toFixed(0)}s`;
+      fixed = 0;
+      fixedEl.textContent = `${fixed} / ${lv.issues.length}`;
+      progressEl.style.width = '0%';
+      issues = lv.issues.map(([x,y,label]) => ({x,y,r:16,label,fixed:false}));
+      selectedTool = lv.tool;
+      renderTools();
+      msg(`Level ${levelIndex+1}: Find all ${lv.s} issues.`);
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(workplace.complete) ctx.drawImage(workplace,0,0,canvas.width,canvas.height);
+      else { ctx.fillStyle='#111827'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+
+      ctx.fillStyle = 'rgba(2,6,23,.72)';
+      ctx.fillRect(0,0,canvas.width,34);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('Workplace Image - Click the hidden issue points', 12, 22);
+
+      const lv = levels[levelIndex];
+      for(const p of issues){
+        if(p.fixed) continue;
+        ctx.beginPath();
+        ctx.fillStyle = lv.color;
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#0b1220';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('!', p.x-3, p.y+4);
+      }
+    }
+
+    function clickCanvas(ev){
+      if(!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (ev.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+      const lv = levels[levelIndex];
+
+      let touched = null;
+      for(const p of issues){
+        if(p.fixed) continue;
+        const d = Math.hypot(x-p.x,y-p.y);
+        if(d <= p.r + 6){ touched = p; break; }
+      }
+
+      if(!touched){
+        score = Math.max(0, score - 3);
+        scoreEl.textContent = score;
+        msg('Missed click. Focus on highlighted issues. -3');
+        return;
+      }
+
+      if(selectedTool !== lv.tool){
+        score = Math.max(0, score - 10);
+        scoreEl.textContent = score;
+        msg(`Wrong tool. Use "${lv.tool}" for this level. -10`);
+        return;
+      }
+
+      touched.fixed = true;
+      fixed += 1;
+      score += 20;
+      scoreEl.textContent = score;
+      fixedEl.textContent = `${fixed} / ${issues.length}`;
+      progressEl.style.width = `${Math.round((fixed/issues.length)*100)}%`;
+      msg(`✅ Fixed: ${touched.label}. +20`);
+
+      if(fixed === issues.length){
+        earned.add(lv.badge);
+        score += 25;
+        scoreEl.textContent = score;
+        updateBadges();
+        running = false;
+        msg(`🎉 ${lv.s} cleared. Bonus +25. Click Start for next level.`);
+        levelIndex += 1;
+        if(levelIndex >= levels.length){
+          msg(`🏁 Game complete! Final Score: ${score}. Great 5S workplace execution.`);
+          objectiveEl.textContent = 'All 5S levels complete';
+          levelEl.textContent = 'Done';
+          timerEl.textContent = '--';
+          progressEl.style.width = '100%';
+        }
+      }
+      draw();
+    }
+
+    function tick(ts){
+      if(!running) return;
+      const dt = Math.min((ts-lastTick)/1000,0.05);
+      lastTick = ts;
+      timeLeft -= dt;
+      if(timeLeft <= 0){
+        running = false;
+        timeLeft = 0;
+        timerEl.textContent = '0.0s';
+        msg('⏱ Time up! Click Start to retry this level.');
+        return;
+      }
+      timerEl.textContent = `${timeLeft.toFixed(1)}s`;
+      requestAnimationFrame(tick);
+    }
+
+    document.getElementById('startBtn').onclick = () => {
+      if(levelIndex >= levels.length) return;
+      if(!issues.length || fixed===issues.length || timeLeft<=0){
+        loadLevel();
+      }
+      if(!running){
+        running = true;
+        lastTick = performance.now();
+        requestAnimationFrame(tick);
+      }
+      draw();
+    };
+
+    document.getElementById('restartBtn').onclick = () => {
+      running = false;
+      score = 0;
+      levelIndex = 0;
+      issues = [];
+      scoreEl.textContent = '0';
+      earned.clear();
+      updateBadges();
+      loadLevel();
+      draw();
+      msg('Restarted. Click Start to play.');
+    };
+
+    canvas.addEventListener('click', clickCanvas);
+    workplace.onload = () => draw();
+
+    updateBadges();
+    loadLevel();
+    draw();
+  </script>
+</body>
+</html>
